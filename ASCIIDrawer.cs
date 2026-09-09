@@ -1,10 +1,7 @@
-﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using System.Collections.Generic;
-using System.Security.Policy;
-using System.IO;
+
+
 
 class ASCIIDrawer
 {
@@ -18,9 +15,6 @@ class ASCIIDrawer
     public const int FILE_WIDTH = 980;
     public const int FILE_HEIGHT = 240;
 
-    public const int ASCII_WIDTH_MAX = MAX_WIDTH;
-    public const int ASCII_HEIGHT_MAX = MAX_HEIGHT;
-
     public const bool INVERT_BRIGHTNESS = false;
     public const bool AUTO_INVERT = false;
     public const double INVERT_THRESHOLD = 0.5;
@@ -32,20 +26,14 @@ class ASCIIDrawer
     public const double WHITESHIFT = 0;
     public const bool COLOR = false;
 
-    public const double WHITE_THRESHOLD = 1;
-    public const double BLACK_THRESHOLD = 0;
-
     public const int GRADIENT = 0;
 
-
-    public const String FILEPATH = "../../image.txt";
+    public const String FILEPATH = "image.txt"; // written to the working directory not a vs specific path
 
     public const int MAX_WIDTH = WRITE_TO_FILE ? FILE_WIDTH : CONSOLE_WIDTH / 2;
     public const int MAX_HEIGHT = WRITE_TO_FILE ? FILE_HEIGHT : CONSOLE_HEIGHT;
 
     public const int STD_OUTPUT_HANDLE = -11;
-
-    //public const bool PRINT_OVERLAP = true; // add in overlap
 
 
 
@@ -61,10 +49,10 @@ class ASCIIDrawer
 
     public static double picture_ratio;
 
-    public static String[] ascii_gradients = new string[] { "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ",
-                                                             "$#+-.  ",
-                                                             "█▓▒░ "};
-
+    // dark to light pick which one gets used with gradient above
+    public static String[] ascii_gradients = [ "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ",
+                                                "$#+-.  ",
+                                                "█▓▒░ " ];
 
     public static char[] ascii_gradient = ascii_gradients[GRADIENT].ToCharArray();
     public static int gradient_length = ascii_gradient.Length;
@@ -78,31 +66,12 @@ class ASCIIDrawer
 
     public static List<Color> colors;
 
-    
 
 
     // MAIN
 
     public static void Main()
     {
-        /*
-        for (int i = 0; i < 255; i += 51)
-        {
-            for (int j = 0; j < 255; j += 51)
-            {
-                for (int k = 0; k < 255; k += 51)
-                {
-                    setConsoleColor(i, j, k);
-                    Console.Write("█");
-                    Console.BackgroundColor = ConsoleColor.Black;
-                    Console.WriteLine(", " + i + " " + j + " " + k);
-                }
-            }
-        }
-        Console.ReadLine();
-        return;
-        */
-
         initColors();
         captureScreenshot();
         getAsciiDimensions();
@@ -110,8 +79,7 @@ class ASCIIDrawer
         print();
 
         Console.BackgroundColor = ConsoleColor.Black;
-        Console.WriteLine("Press enter to exit");
-        Console.ReadLine();
+        Console.WriteLine("Finished");
     }
 
 
@@ -128,12 +96,14 @@ class ASCIIDrawer
     static extern IntPtr GetStdHandle(int nStdHandle);
 
 
+
     // PUBLIC METHODS
 
+    // picks the region to convert by having you click two opposite corners of the picture on screen
     public static void captureScreenshot()
     {
-        Point firstCorner = new Point();
-        Point secondCorner = new Point();
+        Point firstCorner = new();
+        Point secondCorner = new();
 
         Console.WriteLine("Move cursor to one corner of the picture and press enter.");
         Console.ReadLine();
@@ -146,7 +116,7 @@ class ASCIIDrawer
         Console.WriteLine("Press enter again to take a screenshot");
         Console.ReadLine();
 
-        Rectangle rect = new Rectangle(
+        Rectangle rect = new(
             Math.Min(firstCorner.X, secondCorner.X),
             Math.Min(firstCorner.Y, secondCorner.Y),
             Math.Abs(firstCorner.X - secondCorner.X),
@@ -155,7 +125,7 @@ class ASCIIDrawer
         picture_width = rect.Width;
         picture_height = rect.Height;
 
-        picture = new Bitmap(rect.Width, rect.Height);
+        picture = new(rect.Width, rect.Height);
 
         using (Graphics g = Graphics.FromImage(picture))
         {
@@ -183,7 +153,7 @@ class ASCIIDrawer
             break;
         }
 
-        ASCIIDrawer.calculateDimensions();
+        calculateDimensions();
 
         Console.WriteLine("Width was set to: " + ascii_width);
         Console.WriteLine("Height was set to: " + ascii_height);
@@ -202,7 +172,7 @@ class ASCIIDrawer
             printToConsole();
     }
 
-    
+
 
     // PRIVATE METHODS
 
@@ -210,7 +180,7 @@ class ASCIIDrawer
     {
         bool modified = false;
         picture_ratio = picture_height / (double)picture_width;
-        
+
         if (FIT_ASCII_MAX && ascii_width > MAX_WIDTH * 2)
         {
             ascii_width = MAX_WIDTH * 2;
@@ -232,6 +202,7 @@ class ASCIIDrawer
 
 
 
+    // standard luminance weights eyes are more sensitive to green than red or blue
     private static double brightness(int x, int y)
     {
         Color pixelColor = picture.GetPixel(x, y);
@@ -240,15 +211,14 @@ class ASCIIDrawer
 
 
 
+    // downsamples a block of pixels one ascii character worth into a single brightness value
     private static double averageBrightness(int x1, int y1, int x2, int y2)
     {
-        double average_brightness;
-        
         int width = Math.Abs(x1 - x2);
         int height = Math.Abs(y1 - y2);
         int x = Math.Min(x1, x2);
         int y = Math.Min(y1, y2);
-        
+
         int count = 0;
 
         double totalBrightness = 0;
@@ -377,7 +347,6 @@ class ASCIIDrawer
             {
                 modifiedBrightness = 1 - ascii_brightnesses[ascii_x, ascii_y];
 
-
                 if (INVERT_BRIGHTNESS || AUTO_INVERT && totalAverageBrightness < INVERT_THRESHOLD)
                     modifiedBrightness = 1 - modifiedBrightness;
 
@@ -411,6 +380,7 @@ class ASCIIDrawer
 
 
 
+    // maps rgb onto the consoles ansi color cube closest match only
     private static void setConsoleColor(int r, int g, int b)
     {
         int color = (16 + (r / 51) * 36) + ((g / 51) * 6) + (b / 51);
@@ -443,6 +413,8 @@ class ASCIIDrawer
         return Color.FromArgb(red / total, green / total, blue / total);
     }
 
+
+
     private static Color findClosestColor(Color targetColor)
     {
         Color closestColor = colors[0];
@@ -468,9 +440,10 @@ class ASCIIDrawer
 
 
 
+    // console safe colors printed pixels get snapped to the closest one of these
     private static void initColors()
     {
-        colors = new List<Color>();
+        colors = [];
 
         colors.Add(Color.FromArgb(0, 0, 51));
         colors.Add(Color.FromArgb(0, 0, 102));
