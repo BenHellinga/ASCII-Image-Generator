@@ -39,7 +39,7 @@ Move the cursor to one corner of the region and press enter, then do the same fo
 Either form also takes these optional flags:
 
 - `-s <height>` sets the output height in characters (default 100). Width is calculated automatically to match the aspect ratio of the picture.
-- `-g "<gradient>"` uses your own gradient of characters instead of the default one. Gradients go light to dark, same as the default (`" .:-=+*#%@"`).
+- `-g "<gradient>"` uses your own gradient of characters instead of the default one (`" .:-=+*#%@"`).
 
 ```
 dotnet run in/image.png out/image.txt -s 50 -g " .-+*#"
