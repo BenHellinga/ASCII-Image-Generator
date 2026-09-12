@@ -8,13 +8,13 @@ This was just something I wanted to try one weekend in 2022, converting an image
 
 ## Goal
 
-Grab a region of the screen and render it as ASCII, written out to a specified file.
+Convert an image, either a saved local image or new screenshot, to ASCII art in a specific output file.
 
 ## Implementation
 
-The program captures a rectangular region of the screen between two points you click, using `GetCursorPos` (Win32) to read where you clicked and GDI+ (`Graphics.CopyFromScreen`) to grab the pixels.
-
-For each ASCII character in the output, it downsamples the block of pixels behind it into a single brightness value (a luminance-weighted average of R/G/B), then picks a character from a light-to-dark gradient string based on how bright or dark that block is. The brightest and darkest cells in the picture are used to stretch the whole gradient across the image's actual range, so a dark photo still spans light to dark characters instead of only using the dark end.
+The program first obtains an image, either by reading a local image or by taking a screenshot of the user designated region of the screen.
+It then uses the user provided or default height, computes the appropriate width using the aspect ratio of the image, and downsamples or upsamples the image to get brightness values at the output resolution.
+It then uses the min and max brightness to choose the appropriate ascii character from either the user provided or default gradient string.
 
 ## Warnings
 
@@ -34,13 +34,23 @@ Or capture a region of the screen instead:
 dotnet run <output path>
 ```
 
-Move the cursor to one corner of the region and press enter, then do the same for the other corner. The screenshot is taken right after, no need to move the cursor out of frame first.
+Move the cursor to one corner of the region and press enter, then do the same for the other corner.
 
 Either form also takes these optional flags:
 
-- `-h <height>` sets the output height in characters (default 100). Width is calculated automatically to match the aspect ratio of the picture.
+- `-s <height>` sets the output height in characters (default 100). Width is calculated automatically to match the aspect ratio of the picture.
 - `-g "<gradient>"` uses your own gradient of characters instead of the default one. Gradients go light to dark, same as the default (`" .:-=+*#%@"`).
 
 ```
-dotnet run in/image.png out/image.txt -h 200 -g " .-+*#"
+dotnet run in/image.png out/image.txt -s 50 -g " .-+*#"
 ```
+
+## Examples
+
+<img width="1460" height="1238" alt="pi" src="https://github.com/user-attachments/assets/88b33d71-7af1-4d1f-8230-2345fdc30188" />
+
+<img width="1191" height="1109" alt="image" src="https://github.com/user-attachments/assets/0466a729-eb13-4ce2-aa8a-abf56de9d40e" />
+
+<img width="1017" height="1020" alt="spiderman" src="https://github.com/user-attachments/assets/74099430-db37-454f-b6a3-fd66291bfa9f" />
+
+<img width="1210" height="1205" alt="image" src="https://github.com/user-attachments/assets/a0a04dd0-366f-4b81-9785-76d8cf4f5389" />
